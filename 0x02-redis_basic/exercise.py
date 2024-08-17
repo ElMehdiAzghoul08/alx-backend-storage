@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Module"""
 
 import redis
 import uuid
@@ -12,6 +13,7 @@ def count_calls(method: Callable) -> Callable:
     """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
+        """wrapper function"""
         key = method.__qualname__
         self._redis.incr(key)
         return method(self, *args, **kwargs)
@@ -24,6 +26,7 @@ def call_history(method: Callable) -> Callable:
     """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
+        """wrapper function"""
         input_key = f"{method.__qualname__}:inputs"
         output_key = f"{method.__qualname__}:outputs"
 
