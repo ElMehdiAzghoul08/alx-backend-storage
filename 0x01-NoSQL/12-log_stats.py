@@ -8,22 +8,23 @@ from pymongo import MongoClient
 def log_stats():
     """log_stats function"""
     client = MongoClient('mongodb://127.0.0.1:27017')
-    db = client.logs
-    collection = db.nginx
-
-    total_logs = collection.count_documents({})
-    methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
-    methods_counts = {
-        method: collection.count_documents({"method": method})
-        for method in methods}
-    status_check = collection.count_documents(
+    collect_of_logs = client.logs.nginx
+    total = collect_of_logs.count_documents({})
+    get = collect_of_logs.count_documents({"method": "GET"})
+    post = collect_of_logs.count_documents({"method": "POST"})
+    put = collect_of_logs.count_documents({"method": "PUT"})
+    patch = collect_of_logs.count_documents({"method": "PATCH"})
+    delete = collect_of_logs.count_documents({"method": "DELETE"})
+    path = collect_of_logs.count_documents(
         {"method": "GET", "path": "/status"})
-
-    print(f"{total_logs} logs")
+    print(f"{total} logs")
     print("Methods:")
-    for method in methods:
-        print(f"\tmethod {method}: {methods_counts[method]}")
-    print(f"{status_check} status check")
+    print(f"\tmethod GET: {get}")
+    print(f"\tmethod POST: {post}")
+    print(f"\tmethod PUT: {put}")
+    print(f"\tmethod PATCH: {patch}")
+    print(f"\tmethod DELETE: {delete}")
+    print(f"{path} status check")
 
 
 if __name__ == "__main__":
