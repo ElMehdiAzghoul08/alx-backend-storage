@@ -12,6 +12,9 @@ def count_calls(method: Callable) -> Callable:
     """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
+        """
+        wrapper function
+        """
         key = method.__qualname__
         self._redis.incr(key)
         return method(self, *args, **kwargs)
@@ -24,6 +27,9 @@ def call_history(method: Callable) -> Callable:
     """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
+        """
+        wrapper function
+        """
         input_key = f"{method.__qualname__}:inputs"
         output_key = f"{method.__qualname__}:outputs"
 
@@ -42,11 +48,18 @@ def replay(method: Callable):
     """
     redis_instance = redis.Redis()
     method_name = method.__qualname__
+    calls_count = redis_instance.get(method_name)
+    
+    if calls_count is None:
+        print(f"{method_name} was never called")
+        return
+
+    calls_count = int(calls_count)
+    print(f"{method_name} was called {calls_count} times:")
+    
     inputs = redis_instance.lrange(f"{method_name}:inputs", 0, -1)
     outputs = redis_instance.lrange(f"{method_name}:outputs", 0, -1)
-    calls_count = redis_instance.get(method_name).decode("utf-8")
-
-    print(f"{method_name} was called {calls_count} times:")
+    
     for input_args, output in zip(inputs, outputs):
         input_str = input_args.decode("utf-8")
         output_str = output.decode("utf-8")
