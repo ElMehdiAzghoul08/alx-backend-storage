@@ -1,44 +1,28 @@
 #!/usr/bin/env python3
+"""Module"""
 
 import redis
 import requests
 from functools import wraps
 from typing import Callable
 
-
-def cache_and_track(expiration_time: int = 10) -> Callable:
-    """
-    cache_and_track function
-    """
-    def decorator(func: Callable) -> Callable:
-        @wraps(func)
-        def wrapper(url: str) -> str:
-            """
-            wrapper function
-            """
-            redis_client = redis.Redis()
-            count_key = f"count:{url}"
-            content_key = f"content:{url}"
-
-            redis_client.incr(count_key)
-
-            cached_content = redis_client.get(content_key)
-            if cached_content:
-                return cached_content.decode('utf-8')
-
-            result = func(url)
-
-            redis_client.setex(content_key, expiration_time, result)
-
-            return result
-        return wrapper
-    return decorator
+rs = redis.Redis()
 
 
-@cache_and_track()
 def get_page(url: str) -> str:
-    """
-    get_page function
-    """
-    response = requests.get(url)
-    return response.text
+    """get_page function"""
+    rs.incr(f"count:{url}")
+
+    cached_response = rs.get(f"cached:{url}")
+    if cached_response:
+        return cached_response.decode('utf-8')
+
+    res = requests.get(url)
+
+    rs.setex(f"cached:{url}", 10, res.text)
+
+    return res.text
+
+
+if __name__ == "__main__":
+    print(get_page('http://slowwly.robertomurray.co.uk'))
